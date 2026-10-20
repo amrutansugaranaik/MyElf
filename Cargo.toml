@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "libelf-rs",
+    "tools/objcopy",
+    "tools/objdump",
+    "tools/readelf",
+]
+resolver = "3"
