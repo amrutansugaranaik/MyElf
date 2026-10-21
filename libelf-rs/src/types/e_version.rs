@@ -6,8 +6,6 @@ use crate::elf_errors::ElfErrors;
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(u32)]
 pub enum ElfVersion {
-    /// Invalid or unspecified version.
-    ElfVersionNone = 0,
     /// Current ELF version.
     ElfVersionCurrent = 1,
     /// Unknown or unsupported version.
@@ -17,7 +15,6 @@ pub enum ElfVersion {
 impl From<u32> for ElfVersion {
     fn from(value: u32) -> Self {
         match value {
-            0 => Self::ElfVersionNone,
             1 => Self::ElfVersionCurrent,
             _ => Self::ElfVersionUnknown(value),
         }
@@ -27,7 +24,6 @@ impl From<u32> for ElfVersion {
 impl From<ElfVersion> for u32 {
     fn from(value: ElfVersion) -> Self {
         match value {
-            ElfVersion::ElfVersionNone => 0,
             ElfVersion::ElfVersionCurrent => 1,
             ElfVersion::ElfVersionUnknown(value) => value,
         }
@@ -44,16 +40,15 @@ impl ElfVersion {
     pub fn validate(&self) -> Result<(), ElfErrors> {
         match self {
             Self::ElfVersionCurrent => Ok(()),
-            Self::ElfVersionNone | Self::ElfVersionUnknown(_) => Err(ElfErrors::InvalidElfVersion),
+            Self::ElfVersionUnknown(_) => Err(ElfErrors::InvalidElfVersion),
         }
     }
 
     /// Convert this version into a readable string.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::ElfVersionNone => "None",
             Self::ElfVersionCurrent => "Current",
-            Self::ElfVersionUnknown(_) => "Unknown",
+            Self::ElfVersionUnknown(_) => "Unknown version",
         }
     }
 }
@@ -65,10 +60,13 @@ mod test {
     #[test]
     fn test_elf_version_conversions_and_strings() {
         for (raw, version, name) in [
-            (0, ElfVersion::ElfVersionNone, "None"),
             (1, ElfVersion::ElfVersionCurrent, "Current"),
-            (2, ElfVersion::ElfVersionUnknown(2), "Unknown"),
-            (u32::MAX, ElfVersion::ElfVersionUnknown(u32::MAX), "Unknown"),
+            (2, ElfVersion::ElfVersionUnknown(2), "Unknown version"),
+            (
+                u32::MAX,
+                ElfVersion::ElfVersionUnknown(u32::MAX),
+                "Unknown version",
+            ),
         ] {
             assert_eq!(ElfVersion::from(raw), version);
             assert_eq!(u32::from(version), raw);
@@ -81,7 +79,7 @@ mod test {
     fn test_elf_version_validity() {
         assert_eq!(ElfVersion::ElfVersionCurrent.validate(), Ok(()));
         assert_eq!(
-            ElfVersion::ElfVersionNone.validate(),
+            ElfVersion::ElfVersionUnknown(0).validate(),
             Err(ElfErrors::InvalidElfVersion)
         );
         assert_eq!(

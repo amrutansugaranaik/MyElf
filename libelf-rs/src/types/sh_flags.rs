@@ -1,6 +1,6 @@
 // @author: Amrutansu Garanaik
 
-use std::ops::{BitOr, BitOrAssign};
+use core::ops::{BitOr, BitOrAssign};
 
 use crate::elf_errors::ElfErrors;
 
@@ -43,32 +43,24 @@ impl ElfShFlags {
     /// Processor-specific flag mask.
     pub const SHF_MASKPROC: u64 = 0xf000_0000;
 
-    const STANDARD_MASK: u64 =
-        0x1 | 0x2 | 0x4 | 0x10 | 0x20 | 0x40 | 0x80 | 0x100 | 0x200 | 0x400 | 0x800;
+    const STANDARD_MASK: u64 = Self::SHF_WRITE.0
+        | Self::SHF_ALLOC.0
+        | Self::SHF_EXECINSTR.0
+        | Self::SHF_MERGE.0
+        | Self::SHF_STRINGS.0
+        | Self::SHF_INFO_LINK.0
+        | Self::SHF_LINK_ORDER.0
+        | Self::SHF_OS_NONCONFORMING.0
+        | Self::SHF_GROUP.0
+        | Self::SHF_TLS.0
+        | Self::SHF_COMPRESSED.0
+        | Self::SHF_GNU_RETAIN.0
+        | Self::SHF_EXCLUDE.0;
     const VALID_MASK: u64 = Self::STANDARD_MASK | Self::SHF_MASKOS | Self::SHF_MASKPROC;
 
     /// Create flags from their raw ELF bit field.
     pub const fn new(bits: u64) -> Self {
         Self(bits)
-    }
-
-    /// Return the raw ELF bit field.
-    pub const fn bits(self) -> u64 {
-        self.0
-    }
-
-    /// Check whether all bits in `other` are set.
-    pub const fn contains(self, other: Self) -> bool {
-        self.0 & other.0 == other.0
-    }
-
-    /// Return the flags as an ELF32 word when the value fits.
-    pub const fn to_u32(self) -> Option<u32> {
-        if self.0 <= u32::MAX as u64 {
-            Some(self.0 as u32)
-        } else {
-            None
-        }
     }
 
     /// Check that no reserved flag bits are set.
@@ -80,38 +72,30 @@ impl ElfShFlags {
         }
     }
 
-    /// Return a readable list of the active flag names.
-    pub fn as_str(&self) -> String {
-        let mut names = Vec::new();
-        for (flag, name) in [
-            (Self::SHF_WRITE, "WRITE"),
-            (Self::SHF_ALLOC, "ALLOC"),
-            (Self::SHF_EXECINSTR, "EXECINSTR"),
-            (Self::SHF_MERGE, "MERGE"),
-            (Self::SHF_STRINGS, "STRINGS"),
-            (Self::SHF_INFO_LINK, "INFO_LINK"),
-            (Self::SHF_LINK_ORDER, "LINK_ORDER"),
-            (Self::SHF_OS_NONCONFORMING, "OS_NONCONFORMING"),
-            (Self::SHF_GROUP, "GROUP"),
-            (Self::SHF_TLS, "TLS"),
-            (Self::SHF_COMPRESSED, "COMPRESSED"),
-            (Self::SHF_GNU_RETAIN, "GNU_RETAIN"),
-            (Self::SHF_EXCLUDE, "EXCLUDE"),
-        ] {
-            if self.contains(flag) {
-                names.push(name);
-            }
+    /// Return a static label for an exact flag value.
+    ///
+    /// Combined values and unsupported bits return
+    /// `"Multiple flag or invalid flag"`.
+    pub fn as_str(&self) -> &'static str {
+        match self.0 {
+            0 => "None",
+            value if value == Self::SHF_WRITE.0 => "WRITE",
+            value if value == Self::SHF_ALLOC.0 => "ALLOC",
+            value if value == Self::SHF_EXECINSTR.0 => "EXECINSTR",
+            value if value == Self::SHF_MERGE.0 => "MERGE",
+            value if value == Self::SHF_STRINGS.0 => "STRINGS",
+            value if value == Self::SHF_INFO_LINK.0 => "INFO_LINK",
+            value if value == Self::SHF_LINK_ORDER.0 => "LINK_ORDER",
+            value if value == Self::SHF_OS_NONCONFORMING.0 => "OS_NONCONFORMING",
+            value if value == Self::SHF_GROUP.0 => "GROUP",
+            value if value == Self::SHF_TLS.0 => "TLS",
+            value if value == Self::SHF_COMPRESSED.0 => "COMPRESSED",
+            value if value == Self::SHF_GNU_RETAIN.0 => "GNU_RETAIN",
+            value if value == Self::SHF_EXCLUDE.0 => "EXCLUDE",
+            value if value == Self::SHF_MASKOS => "OS-specific mask",
+            value if value == Self::SHF_MASKPROC => "Processor-specific mask",
+            _ => "Multiple flags or invalid flag",
         }
-        if self.0 & Self::SHF_MASKOS & !Self::SHF_GNU_RETAIN.0 != 0 {
-            names.push("OS-specific");
-        }
-        if self.0 & Self::SHF_MASKPROC & !Self::SHF_EXCLUDE.0 != 0 {
-            names.push("Processor-specific");
-        }
-        if names.is_empty() {
-            names.push("None");
-        }
-        names.join("|")
     }
 }
 
@@ -166,12 +150,31 @@ mod test {
         (0x800, ElfShFlags::SHF_COMPRESSED, "COMPRESSED"),
         (0x0020_0000, ElfShFlags::SHF_GNU_RETAIN, "GNU_RETAIN"),
         (0x8000_0000, ElfShFlags::SHF_EXCLUDE, "EXCLUDE"),
-        (0x6, ElfShFlags::new(0x6), "ALLOC|EXECINSTR"),
-        (0x0010_0000, ElfShFlags::new(0x0010_0000), "OS-specific"),
+        (0x6, ElfShFlags::new(0x6), "Multiple flags or invalid flag"),
+        (
+            0x0010_0000,
+            ElfShFlags::new(0x0010_0000),
+            "Multiple flags or invalid flag",
+        ),
+        (
+            ElfShFlags::SHF_MASKOS,
+            ElfShFlags::new(ElfShFlags::SHF_MASKOS),
+            "OS-specific mask",
+        ),
         (
             0x1000_0000,
             ElfShFlags::new(0x1000_0000),
-            "Processor-specific",
+            "Multiple flags or invalid flag",
+        ),
+        (
+            ElfShFlags::SHF_MASKPROC,
+            ElfShFlags::new(ElfShFlags::SHF_MASKPROC),
+            "Processor-specific mask",
+        ),
+        (
+            ElfShFlags::STANDARD_MASK,
+            ElfShFlags::new(ElfShFlags::STANDARD_MASK),
+            "Multiple flags or invalid flag",
         ),
     ];
 
@@ -184,11 +187,9 @@ mod test {
             assert_eq!(flags.as_str(), *name);
         }
         assert_eq!(ElfShFlags::from(0x6_u32), ElfShFlags::new(0x6));
-        assert_eq!(ElfShFlags::new(0x6).to_u32(), Some(0x6));
 
         let flags = ElfShFlags::SHF_ALLOC | ElfShFlags::SHF_EXECINSTR;
-        assert_eq!(flags.bits(), 0x6);
-        assert!(flags.contains(ElfShFlags::SHF_ALLOC));
+        assert_eq!(u64::from(flags), 0x6);
 
         let mut flags = ElfShFlags::SHF_WRITE;
         flags |= ElfShFlags::SHF_ALLOC;
@@ -204,6 +205,5 @@ mod test {
             ElfShFlags::new(0x10_0000_0000).validate(),
             Err(ElfErrors::InvalidSectionHeaderFlags)
         );
-        assert_eq!(ElfShFlags::new(0x1_0000_0000).to_u32(), None);
     }
 }

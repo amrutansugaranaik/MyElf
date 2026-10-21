@@ -1,6 +1,6 @@
 // @author: Amrutansu Garanaik
 
-use std::ops::{BitOr, BitOrAssign};
+use core::ops::{BitOr, BitOrAssign};
 
 use crate::elf_errors::ElfErrors;
 
@@ -23,21 +23,12 @@ impl ElfPhFlags {
     /// Processor-specific flag mask.
     pub const PF_MASKPROC: u32 = 0xf000_0000;
 
-    const VALID_MASK: u32 = 0x0ff0_0007 | 0xf000_0000;
+    const VALID_MASK: u32 =
+        Self::PF_X.0 | Self::PF_W.0 | Self::PF_R.0 | Self::PF_MASKOS | Self::PF_MASKPROC;
 
     /// Create flags from their raw ELF bit field.
     pub const fn new(bits: u32) -> Self {
         Self(bits)
-    }
-
-    /// Return the raw ELF bit field.
-    pub const fn bits(self) -> u32 {
-        self.0
-    }
-
-    /// Check whether all bits in `other` are set.
-    pub const fn contains(self, other: Self) -> bool {
-        self.0 & other.0 == other.0
     }
 
     /// Check that no reserved flag bits are set.
@@ -49,28 +40,20 @@ impl ElfPhFlags {
         }
     }
 
-    /// Return a readable list of the active flag names.
-    pub fn as_str(&self) -> String {
-        let mut names = Vec::new();
-        if self.contains(Self::PF_R) {
-            names.push("R");
+    /// Return a static label for an exact flag value.
+    ///
+    /// Combined values and unsupported bits return
+    /// `"Multiple flag or invalid flag"`.
+    pub fn as_str(&self) -> &'static str {
+        match self.0 {
+            0 => "None",
+            value if value == Self::PF_X.0 => "X",
+            value if value == Self::PF_W.0 => "W",
+            value if value == Self::PF_R.0 => "R",
+            value if value == Self::PF_MASKOS => "OS-specific mask",
+            value if value == Self::PF_MASKPROC => "Processor-specific mask",
+            _ => "Multiple flag or invalid flag",
         }
-        if self.contains(Self::PF_W) {
-            names.push("W");
-        }
-        if self.contains(Self::PF_X) {
-            names.push("X");
-        }
-        if self.0 & Self::PF_MASKOS != 0 {
-            names.push("OS-specific");
-        }
-        if self.0 & Self::PF_MASKPROC != 0 {
-            names.push("Processor-specific");
-        }
-        if names.is_empty() {
-            names.push("None");
-        }
-        names.join("|")
     }
 }
 
@@ -109,12 +92,26 @@ mod test {
         (1, ElfPhFlags::PF_X, "X"),
         (2, ElfPhFlags::PF_W, "W"),
         (4, ElfPhFlags::PF_R, "R"),
-        (7, ElfPhFlags::new(7), "R|W|X"),
-        (0x0010_0000, ElfPhFlags::new(0x0010_0000), "OS-specific"),
+        (7, ElfPhFlags::new(7), "Multiple flag or invalid flag"),
+        (
+            0x0010_0000,
+            ElfPhFlags::new(0x0010_0000),
+            "Multiple flag or invalid flag",
+        ),
+        (
+            ElfPhFlags::PF_MASKOS,
+            ElfPhFlags::new(ElfPhFlags::PF_MASKOS),
+            "OS-specific mask",
+        ),
         (
             0x1000_0000,
             ElfPhFlags::new(0x1000_0000),
-            "Processor-specific",
+            "Multiple flag or invalid flag",
+        ),
+        (
+            ElfPhFlags::PF_MASKPROC,
+            ElfPhFlags::new(ElfPhFlags::PF_MASKPROC),
+            "Processor-specific mask",
         ),
     ];
 
@@ -131,13 +128,12 @@ mod test {
     #[test]
     fn test_program_header_flags_operations_and_validity() {
         let flags = ElfPhFlags::PF_R | ElfPhFlags::PF_W | ElfPhFlags::PF_X;
-        assert_eq!(flags.bits(), 0x7);
-        assert!(flags.contains(ElfPhFlags::PF_R | ElfPhFlags::PF_W));
+        assert_eq!(u32::from(flags), 0x7);
         assert_eq!(flags.validate(), Ok(()));
 
         let mut flags = ElfPhFlags::PF_R;
         flags |= ElfPhFlags::PF_X;
-        assert_eq!(flags, ElfPhFlags::PF_R | ElfPhFlags::PF_X);
+        assert_eq!(u32::from(flags), 0x5);
 
         assert_eq!(
             ElfPhFlags::from(0x8).validate(),

@@ -17,7 +17,8 @@ project owner's devices and can grow to support additional targets:
 
 Do not assume the host machine's architecture is the ELF file's architecture.
 ELF class, byte order, and machine are properties of each file and must be
-handled explicitly.
+handled explicitly. ELF32/ELF64 describe the ELF object format and its
+associated field/address model, not the processor's physical bus width.
 
 ## Repository layout
 
@@ -113,6 +114,9 @@ must still be preserved as raw unknown values when reading.
 
 `EI_CLASS`, `EI_DATA`, and `EI_VERSION` are bytes in `e_ident`. `e_version` in
 the ELF header is a 32-bit field; the value meanings are the same.
+The library maps the zero sentinel values to `Unknown(0)` and rejects them
+when validating data for output; it preserves their numeric value when
+round-tripping.
 
 ### ELF file type (`e_type`)
 

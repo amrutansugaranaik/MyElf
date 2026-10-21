@@ -2,12 +2,10 @@
 
 use crate::elf_errors::ElfErrors;
 
-/// ELF identification class (`EI_CLASS`), describing the object size.
+/// ELF identification class (`EI_CLASS`), selecting the ELF32 or ELF64 format.
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[repr(u8)]
 pub enum ElfClass {
-    /// Invalid or unspecified class.
-    ElfClassNone = 0,
     /// 32-bit objects.
     ElfClass32 = 1,
     /// 64-bit objects.
@@ -19,7 +17,6 @@ pub enum ElfClass {
 impl From<u8> for ElfClass {
     fn from(value: u8) -> Self {
         match value {
-            0 => ElfClass::ElfClassNone,
             1 => ElfClass::ElfClass32,
             2 => ElfClass::ElfClass64,
             _ => ElfClass::ElfClassUnknown(value),
@@ -30,7 +27,6 @@ impl From<u8> for ElfClass {
 impl From<ElfClass> for u8 {
     fn from(value: ElfClass) -> u8 {
         match value {
-            ElfClass::ElfClassNone => 0,
             ElfClass::ElfClass32 => 1,
             ElfClass::ElfClass64 => 2,
             ElfClass::ElfClassUnknown(value) => value,
@@ -48,19 +44,16 @@ impl ElfClass {
     pub fn validate(&self) -> Result<(), ElfErrors> {
         match self {
             ElfClass::ElfClass32 | ElfClass::ElfClass64 => Ok(()),
-            ElfClass::ElfClassNone | ElfClass::ElfClassUnknown(_) => {
-                Err(ElfErrors::InvalidElfClass)
-            }
+            ElfClass::ElfClassUnknown(_) => Err(ElfErrors::InvalidElfClass),
         }
     }
 
     /// Convert this class into a readable string.
     pub fn as_str(&self) -> &'static str {
         match self {
-            ElfClass::ElfClassNone => "None",
-            ElfClass::ElfClass32 => "32-bit",
-            ElfClass::ElfClass64 => "64-bit",
-            ElfClass::ElfClassUnknown(_) => "Unknown",
+            ElfClass::ElfClass32 => "ELF32",
+            ElfClass::ElfClass64 => "ELF64",
+            ElfClass::ElfClassUnknown(_) => "Unknown ELF class",
         }
     }
 }
@@ -71,16 +64,15 @@ mod test {
 
     #[test]
     fn test_elf_class_as_string() {
-        assert_eq!(ElfClass::ElfClassNone.as_str(), "None");
-        assert_eq!(ElfClass::ElfClass32.as_str(), "32-bit");
-        assert_eq!(ElfClass::ElfClass64.as_str(), "64-bit");
-        assert_eq!(ElfClass::ElfClassUnknown(3).as_str(), "Unknown");
+        assert_eq!(ElfClass::ElfClass32.as_str(), "ELF32");
+        assert_eq!(ElfClass::ElfClass64.as_str(), "ELF64");
+        assert_eq!(ElfClass::ElfClassUnknown(3).as_str(), "Unknown ELF class");
     }
 
     #[test]
     fn test_elf_class_conversions() {
         for (value, class) in [
-            (0, ElfClass::ElfClassNone),
+            (0, ElfClass::ElfClassUnknown(0)),
             (1, ElfClass::ElfClass32),
             (2, ElfClass::ElfClass64),
             (3, ElfClass::ElfClassUnknown(3)),
@@ -95,7 +87,7 @@ mod test {
     #[test]
     fn test_elf_class_validity() {
         assert_eq!(
-            ElfClass::ElfClassNone.validate(),
+            ElfClass::ElfClassUnknown(0).validate(),
             Err(ElfErrors::InvalidElfClass)
         );
         assert_eq!(ElfClass::ElfClass32.validate(), Ok(()));
