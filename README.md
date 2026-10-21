@@ -15,10 +15,9 @@ open target/llvm-cov/html/index.html
 
 # Things not supported deliberately.
 - ABI version field and padding field are always ignored. If any implementation requires them, the library cannot be used.
-
+- The library only supports Little Endian.
 
 # To check later
 - In elf identifier, will this line work?
 result[4] = identifier.class.into();
 
-- 

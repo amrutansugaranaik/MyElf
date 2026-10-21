@@ -40,11 +40,13 @@ impl ElfEndian {
         Self::from(value)
     }
 
-    /// Check whether this is a recognized ELF data encoding.
+    /// Check whether this data encoding is supported by the library.
     pub fn validate(&self) -> Result<(), ElfErrors> {
         match self {
-            ElfEndian::ElfEndianLittle | ElfEndian::ElfEndianBig => Ok(()),
-            ElfEndian::ElfEndianUnknown(_) => Err(ElfErrors::InvalidElfEndian),
+            ElfEndian::ElfEndianLittle => Ok(()),
+            ElfEndian::ElfEndianBig | ElfEndian::ElfEndianUnknown(_) => {
+                Err(ElfErrors::InvalidElfEndian)
+            }
         }
     }
 
@@ -94,7 +96,10 @@ mod test {
             Err(ElfErrors::InvalidElfEndian)
         );
         assert_eq!(ElfEndian::ElfEndianLittle.validate(), Ok(()));
-        assert_eq!(ElfEndian::ElfEndianBig.validate(), Ok(()));
+        assert_eq!(
+            ElfEndian::ElfEndianBig.validate(),
+            Err(ElfErrors::InvalidElfEndian)
+        );
         assert_eq!(
             ElfEndian::ElfEndianUnknown(3).validate(),
             Err(ElfErrors::InvalidElfEndian)

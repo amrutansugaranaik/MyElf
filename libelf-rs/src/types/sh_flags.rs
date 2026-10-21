@@ -94,7 +94,7 @@ impl ElfShFlags {
             value if value == Self::SHF_EXCLUDE.0 => "EXCLUDE",
             value if value == Self::SHF_MASKOS => "OS-specific mask",
             value if value == Self::SHF_MASKPROC => "Processor-specific mask",
-            _ => "Multiple flags or invalid flag",
+            _ => "Multiple flag or invalid flag",
         }
     }
 }
@@ -150,11 +150,11 @@ mod test {
         (0x800, ElfShFlags::SHF_COMPRESSED, "COMPRESSED"),
         (0x0020_0000, ElfShFlags::SHF_GNU_RETAIN, "GNU_RETAIN"),
         (0x8000_0000, ElfShFlags::SHF_EXCLUDE, "EXCLUDE"),
-        (0x6, ElfShFlags::new(0x6), "Multiple flags or invalid flag"),
+        (0x6, ElfShFlags::new(0x6), "Multiple flag or invalid flag"),
         (
             0x0010_0000,
             ElfShFlags::new(0x0010_0000),
-            "Multiple flags or invalid flag",
+            "Multiple flag or invalid flag",
         ),
         (
             ElfShFlags::SHF_MASKOS,
@@ -164,7 +164,7 @@ mod test {
         (
             0x1000_0000,
             ElfShFlags::new(0x1000_0000),
-            "Multiple flags or invalid flag",
+            "Multiple flag or invalid flag",
         ),
         (
             ElfShFlags::SHF_MASKPROC,
@@ -174,7 +174,7 @@ mod test {
         (
             ElfShFlags::STANDARD_MASK,
             ElfShFlags::new(ElfShFlags::STANDARD_MASK),
-            "Multiple flags or invalid flag",
+            "Multiple flag or invalid flag",
         ),
     ];
 
@@ -198,8 +198,8 @@ mod test {
 
     #[test]
     fn test_section_header_flags_validity() {
-        for (raw, flags, _) in KNOWN {
-            assert_eq!(flags.validate(), Ok(()), "raw flags {raw:#x}");
+        for (_, flags, _) in KNOWN {
+            assert_eq!(flags.validate(), Ok(()));
         }
         assert_eq!(
             ElfShFlags::new(0x10_0000_0000).validate(),

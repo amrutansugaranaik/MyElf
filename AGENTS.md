@@ -16,8 +16,9 @@ project owner's devices and can grow to support additional targets:
 - x86-64
 
 Do not assume the host machine's architecture is the ELF file's architecture.
-ELF class, byte order, and machine are properties of each file and must be
-handled explicitly. ELF32/ELF64 describe the ELF object format and its
+ELF class and machine are properties of each file and must be handled
+explicitly. The library currently supports little-endian ELF files only and
+rejects other data encodings. ELF32/ELF64 describe the ELF object format and its
 associated field/address model, not the processor's physical bus width.
 
 ## Repository layout

@@ -9,6 +9,7 @@ use crate::types::ei_osabi::ElfOsAbi;
 use crate::types::ei_version::ElfVersion;
 
 /// Common ELF identifier structure, present in both 32-bit and 64-bit ELF files.
+#[derive(Clone, Debug, PartialEq)]
 pub struct ElfIdentifier {
     /// Magic number, always `0x7F 'E' 'L' 'F'`.
     pub magic: [u8; 4],
@@ -208,7 +209,7 @@ mod test {
     // Convert data into array. Just create an identifier from new (64-bit LE Linux) and convert to array.
     // Compare it with the global array which is the expected array.
     fn test_into_array() {
-        let mut identifier = ElfIdentifier::new(
+        let identifier = ElfIdentifier::new(
             ElfClass::ElfClass64,
             ElfEndian::ElfEndianLittle,
             ElfOsAbi::Linux,
