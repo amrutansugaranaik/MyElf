@@ -23,5 +23,7 @@ pub enum ElfErrors {
     InvalidSectionHeaderType,
     /// Unsupported section header flag bits.
     InvalidSectionHeaderFlags,
+    /// Elf header marker is not present.
+    InvalidMagicNumber,
     // More to be added.
 }

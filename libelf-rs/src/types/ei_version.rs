@@ -2,18 +2,18 @@
 
 use crate::elf_errors::ElfErrors;
 
-/// ELF header version (`e_version`).
+/// ELF identification version (`EI_VERSION`).
 #[derive(Copy, Clone, Debug, PartialEq)]
-#[repr(u32)]
+#[repr(u8)]
 pub enum ElfVersion {
     /// Current ELF version.
     ElfVersionCurrent = 1,
     /// Unknown or unsupported version.
-    ElfVersionUnknown(u32),
+    ElfVersionUnknown(u8),
 }
 
-impl From<u32> for ElfVersion {
-    fn from(value: u32) -> Self {
+impl From<u8> for ElfVersion {
+    fn from(value: u8) -> Self {
         match value {
             1 => Self::ElfVersionCurrent,
             _ => Self::ElfVersionUnknown(value),
@@ -21,7 +21,7 @@ impl From<u32> for ElfVersion {
     }
 }
 
-impl From<ElfVersion> for u32 {
+impl From<ElfVersion> for u8 {
     fn from(value: ElfVersion) -> Self {
         match value {
             ElfVersion::ElfVersionCurrent => 1,
@@ -31,8 +31,8 @@ impl From<ElfVersion> for u32 {
 }
 
 impl ElfVersion {
-    /// Create an `ElfVersion` from its ELF version field.
-    pub fn new(value: u32) -> Self {
+    /// Create an `ElfVersion` from the `EI_VERSION` byte.
+    pub fn new(value: u8) -> Self {
         Self::from(value)
     }
 
@@ -63,13 +63,13 @@ mod test {
             (1, ElfVersion::ElfVersionCurrent, "Current"),
             (2, ElfVersion::ElfVersionUnknown(2), "Unknown version"),
             (
-                u32::MAX,
-                ElfVersion::ElfVersionUnknown(u32::MAX),
+                u8::MAX,
+                ElfVersion::ElfVersionUnknown(u8::MAX),
                 "Unknown version",
             ),
         ] {
             assert_eq!(ElfVersion::from(raw), version);
-            assert_eq!(u32::from(version), raw);
+            assert_eq!(u8::from(version), raw);
             assert_eq!(ElfVersion::new(raw), version);
             assert_eq!(version.as_str(), name);
         }

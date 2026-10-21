@@ -70,10 +70,11 @@ maintenance or improve correctness.
 
 ## Current coverage and next implementation layers
 
-The core library currently has typed values for ELF class, byte order, file
-type, OS ABI, machine, program header type/flags, section header type/flags,
-and ELF version. Modules use field-based names such as `ei_class`, `e_type`,
-`p_type`, and `sh_flags`. It does not yet parse or write complete ELF files.
+The core library currently has typed values for ELF identification class, byte
+order, OS ABI and version (`ei_class`, `ei_data`, `ei_osabi`, `ei_version`),
+ELF header type and machine (`e_type`, `e_machine`), program header type/flags,
+and section header type/flags. It does not yet parse or write complete ELF
+files.
 
 Recommended order after typed constants:
 
@@ -109,11 +110,14 @@ must still be preserved as raw unknown values when reading.
 | `EI_DATA` | `ELFDATANONE` | `0` | Invalid/unspecified encoding |
 | `EI_DATA` | `ELFDATA2LSB` | `1` | Little-endian |
 | `EI_DATA` | `ELFDATA2MSB` | `2` | Big-endian |
-| `EI_VERSION` / `e_version` | `EV_NONE` | `0` | Invalid/unspecified version |
-| `EI_VERSION` / `e_version` | `EV_CURRENT` | `1` | Current ELF version |
+| `EI_VERSION` | `EV_NONE` | `0` | Invalid/unspecified identification version |
+| `EI_VERSION` | `EV_CURRENT` | `1` | Current identification version |
+| `e_version` | `EV_NONE` | `0` | Invalid/unspecified ELF header version |
+| `e_version` | `EV_CURRENT` | `1` | Current ELF header version |
 
-`EI_CLASS`, `EI_DATA`, and `EI_VERSION` are bytes in `e_ident`. `e_version` in
-the ELF header is a 32-bit field; the value meanings are the same.
+`EI_CLASS`, `EI_DATA`, `EI_OSABI`, and `EI_VERSION` are bytes in `e_ident`.
+`e_version` is a separate 32-bit ELF header field. The version constants
+share values, but the types and field widths are distinct.
 The library maps the zero sentinel values to `Unknown(0)` and rejects them
 when validating data for output; it preserves their numeric value when
 round-tripping.
