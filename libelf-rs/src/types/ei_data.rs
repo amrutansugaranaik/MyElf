@@ -66,7 +66,10 @@ mod test {
 
     #[test]
     fn test_elf_endian_as_string() {
-        assert_eq!(ElfEndian::ElfEndianLittle.as_str(), "2's complement, little endian");
+        assert_eq!(
+            ElfEndian::ElfEndianLittle.as_str(),
+            "2's complement, little endian"
+        );
         assert_eq!(ElfEndian::ElfEndianBig.as_str(), "Big-endian");
         assert_eq!(
             ElfEndian::ElfEndianUnknown(3).as_str(),
