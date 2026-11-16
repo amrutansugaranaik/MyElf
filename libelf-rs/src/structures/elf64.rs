@@ -8,11 +8,13 @@ use crate::types::ei_class::ElfClass;
 use crate::types::ei_data::ElfEndian;
 
 /// Size of the ELF64 header in bytes.
-pub const ELF64_HEADER_SIZE: u16 = 64;
+pub const ELF64_HEADER_SIZE: usize = 64;
 /// Size of an ELF64 program header in bytes.
-pub const ELF64_PROGRAM_HEADER_SIZE: u16 = 56;
+pub const ELF64_PROGRAM_HEADER_SIZE: usize = 56;
 /// Size of an ELF64 section header in bytes.
-pub const ELF64_SECTION_HEADER_SIZE: u16 = 64;
+pub const ELF64_SECTION_HEADER_SIZE: usize = 64;
+/// Size of an ELF64 symbol table in bytes.
+pub const ELF64_SYMBOL_TABLE_SIZE: usize = 24;
 
 /// ELF64 file header.
 #[derive(Clone, Debug, PartialEq)]
@@ -59,10 +61,10 @@ impl Elf64 {
             phoff: 0,
             shoff: 0,
             flags: 0,
-            ehsize: ELF64_HEADER_SIZE,
-            phentsize: ELF64_PROGRAM_HEADER_SIZE,
+            ehsize: ELF64_HEADER_SIZE as u16,
+            phentsize: ELF64_PROGRAM_HEADER_SIZE as u16,
             phnum: 0,
-            shentsize: ELF64_SECTION_HEADER_SIZE,
+            shentsize: ELF64_SECTION_HEADER_SIZE as u16,
             shnum: 0,
             shstrndx: 0,
         }
@@ -79,26 +81,26 @@ impl Elf64 {
         if self.version != 1 {
             return Err(ElfErrors::InvalidElfVersion);
         }
-        if self.ehsize != ELF64_HEADER_SIZE {
+        if self.ehsize as usize != ELF64_HEADER_SIZE {
             return Err(ElfErrors::InvalidElfHeaderSize);
         }
         Ok(())
     }
 }
 
-impl From<[u8; ELF64_HEADER_SIZE as usize]> for Elf64 {
+impl From<&[u8; ELF64_HEADER_SIZE as usize]> for Elf64 {
     /// Read an ELF64 header from its fixed-size byte representation.
     ///
     /// Unsupported data encodings are normalized to `Unknown(0xFF)`. Since
     /// their byte order is not defined, the remaining fields use little-endian
     /// decoding as a deterministic placeholder; validate before using them.
-    fn from(bytes: [u8; ELF64_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF64_HEADER_SIZE as usize]) -> Self {
         let mut identifier_bytes = [0; 16];
         identifier_bytes.copy_from_slice(&bytes[..16]);
         if !matches!(identifier_bytes[5], 1 | 2) {
             identifier_bytes[5] = u8::MAX;
         }
-        let identifier = ElfIdentifier::from(identifier_bytes);
+        let identifier = ElfIdentifier::from(&identifier_bytes);
 
         Self {
             identifier,
@@ -199,7 +201,7 @@ mod test {
                 2, 0, 183, 0, 1, 0, 0, 0, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11
             ]
         );
-        let parsed = Elf64::from(bytes);
+        let parsed = Elf64::from(&bytes);
         assert_eq!(parsed, header);
         assert_eq!(parsed.validate(), Ok(()));
     }
@@ -218,7 +220,7 @@ mod test {
                 2, 0, 183, 0, 1, 0, 0, 0, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11
             ]
         );
-        let parsed = Elf64::from(bytes);
+        let parsed = Elf64::from(&bytes);
         assert_eq!(parsed, header);
         assert_eq!(parsed.validate(), Err(ElfErrors::InvalidElfEndian));
     }
@@ -229,7 +231,7 @@ mod test {
             let mut bytes: [u8; ELF64_HEADER_SIZE as usize] =
                 header(ElfEndian::ElfEndianLittle).into();
             bytes[5] = raw_data;
-            let parsed = Elf64::from(bytes);
+            let parsed = Elf64::from(&bytes);
             assert_eq!(parsed.identifier.data, ElfEndian::ElfEndianUnknown(u8::MAX));
             assert_eq!(parsed.version, 1);
             assert_eq!(parsed.validate(), Err(ElfErrors::InvalidElfEndian));

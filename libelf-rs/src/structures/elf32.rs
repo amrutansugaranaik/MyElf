@@ -86,19 +86,19 @@ impl Elf32 {
     }
 }
 
-impl From<[u8; ELF32_HEADER_SIZE as usize]> for Elf32 {
+impl From<&[u8; ELF32_HEADER_SIZE as usize]> for Elf32 {
     /// Read an ELF32 header from its fixed-size byte representation.
     ///
     /// Unsupported data encodings are normalized to `Unknown(0xFF)`. Since
     /// their byte order is not defined, the remaining fields use little-endian
     /// decoding as a deterministic placeholder; validate before using them.
-    fn from(bytes: [u8; ELF32_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF32_HEADER_SIZE as usize]) -> Self {
         let mut identifier_bytes = [0; 16];
         identifier_bytes.copy_from_slice(&bytes[..16]);
         if !matches!(identifier_bytes[5], 1 | 2) {
             identifier_bytes[5] = u8::MAX;
         }
-        let identifier = ElfIdentifier::from(identifier_bytes);
+        let identifier = ElfIdentifier::from(&identifier_bytes);
 
         Self {
             identifier,
@@ -186,7 +186,7 @@ mod test {
         let bytes: [u8; ELF32_HEADER_SIZE as usize] = header.clone().into();
         assert_eq!(&bytes[..4], &[0x7f, b'E', b'L', b'F']);
         assert_eq!(&bytes[16..24], &[2, 0, 0xf3, 0, 1, 0, 0, 0]);
-        let parsed = Elf32::from(bytes);
+        let parsed = Elf32::from(&bytes);
         assert_eq!(parsed, header);
         assert_eq!(parsed.validate(), Ok(()));
     }
@@ -200,7 +200,7 @@ mod test {
 
         let bytes: [u8; ELF32_HEADER_SIZE as usize] = header.clone().into();
         assert_eq!(&bytes[16..24], &[2, 0, 0xf3, 0, 1, 0, 0, 0]);
-        let parsed = Elf32::from(bytes);
+        let parsed = Elf32::from(&bytes);
         assert_eq!(parsed, header);
         assert_eq!(parsed.validate(), Err(ElfErrors::InvalidElfEndian));
     }
@@ -211,7 +211,7 @@ mod test {
             let mut bytes: [u8; ELF32_HEADER_SIZE as usize] =
                 header(ElfEndian::ElfEndianLittle).into();
             bytes[5] = raw_data;
-            let parsed = Elf32::from(bytes);
+            let parsed = Elf32::from(&bytes);
             assert_eq!(parsed.identifier.data, ElfEndian::ElfEndianUnknown(u8::MAX));
             assert_eq!(parsed.version, 1);
             assert_eq!(parsed.validate(), Err(ElfErrors::InvalidElfEndian));

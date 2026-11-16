@@ -77,7 +77,7 @@ impl ElfFileType {
         match self {
             ElfFileType::ElfTypeNone => "None",
             ElfFileType::ElfTypeRel => "Rel",
-            ElfFileType::ElfTypeExec => "Exec",
+            ElfFileType::ElfTypeExec => "EXEC (Executable file)",
             ElfFileType::ElfTypeDynRel => "DynRel",
             ElfFileType::ElfTypeCore => "Core",
             ElfFileType::ElfTypeUnknown(_) => "Unknown",
@@ -92,7 +92,7 @@ mod test {
     const KNOWN: &[(u16, ElfFileType, &str)] = &[
         (0, ElfFileType::ElfTypeNone, "None"),
         (1, ElfFileType::ElfTypeRel, "Rel"),
-        (2, ElfFileType::ElfTypeExec, "Exec"),
+        (2, ElfFileType::ElfTypeExec, "EXEC (Executable file)"),
         (3, ElfFileType::ElfTypeDynRel, "DynRel"),
         (4, ElfFileType::ElfTypeCore, "Core"),
     ];

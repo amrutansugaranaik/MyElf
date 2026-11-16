@@ -58,9 +58,9 @@ impl ElfSectionHeader32 {
     }
 }
 
-impl From<[u8; ELF32_SECTION_HEADER_SIZE as usize]> for ElfSectionHeader32 {
+impl From<&[u8; ELF32_SECTION_HEADER_SIZE as usize]> for ElfSectionHeader32 {
     /// Read an ELF32 section header from its little-endian byte representation.
-    fn from(bytes: [u8; ELF32_SECTION_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF32_SECTION_HEADER_SIZE as usize]) -> Self {
         Self {
             sh_name: u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
             sh_type: ElfShType::from(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]])),
@@ -127,7 +127,7 @@ mod test {
                 0xaa, 0x99, 0, 1, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 0, 0x10, 0, 0, 16, 0, 0, 0,
             ]
         );
-        let parsed = ElfSectionHeader32::from(bytes);
+        let parsed = ElfSectionHeader32::from(&bytes);
         assert_eq!(parsed, header);
         assert_eq!(parsed.validate(), Ok(()));
     }
@@ -136,7 +136,7 @@ mod test {
     fn test_section_header_32_unknown_type_round_trips() {
         let mut bytes = [0; ELF32_SECTION_HEADER_SIZE as usize];
         bytes[4..8].copy_from_slice(&0x1234_u32.to_le_bytes());
-        let parsed = ElfSectionHeader32::from(bytes);
+        let parsed = ElfSectionHeader32::from(&bytes);
         assert_eq!(parsed.sh_type, ElfShType::ElfShTypeUnknown(0x1234));
         let encoded: [u8; ELF32_SECTION_HEADER_SIZE as usize] = parsed.into();
         assert_eq!(&encoded[4..8], &0x1234_u32.to_le_bytes());

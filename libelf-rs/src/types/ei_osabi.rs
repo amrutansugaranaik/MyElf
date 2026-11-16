@@ -141,7 +141,7 @@ impl ElfOsAbi {
     /// Converts an `ElfOsAbi` enum into a readable string.
     pub fn as_str(&self) -> &'static str {
         match self {
-            ElfOsAbi::SystemV => "Unix System - V",
+            ElfOsAbi::SystemV => "Unix - System V",
             ElfOsAbi::HpUx => "HP-UX",
             ElfOsAbi::NetBsd => "Net BSD",
             ElfOsAbi::Linux => "Linux",
@@ -169,7 +169,7 @@ mod test {
     use super::*;
 
     const KNOWN: &[(u8, ElfOsAbi, &str)] = &[
-        (0x00, ElfOsAbi::SystemV, "Unix System - V"),
+        (0x00, ElfOsAbi::SystemV, "Unix - System V"),
         (0x01, ElfOsAbi::HpUx, "HP-UX"),
         (0x02, ElfOsAbi::NetBsd, "Net BSD"),
         (0x03, ElfOsAbi::Linux, "Linux"),

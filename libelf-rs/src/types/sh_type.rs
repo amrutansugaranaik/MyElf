@@ -190,15 +190,15 @@ impl ElfShType {
     /// Convert this section header type into a readable string.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::ElfShTypeNull => "Null",
-            Self::ElfShTypeProgBits => "Program data",
-            Self::ElfShTypeSymTab => "Symbol table",
-            Self::ElfShTypeStrTab => "String table",
+            Self::ElfShTypeNull => "NULL",
+            Self::ElfShTypeProgBits => "PROGBITS",
+            Self::ElfShTypeSymTab => "SYMTAB",
+            Self::ElfShTypeStrTab => "STRTAB",
             Self::ElfShTypeRela => "Relocations with addends",
             Self::ElfShTypeHash => "Hash table",
             Self::ElfShTypeDynamic => "Dynamic",
             Self::ElfShTypeNote => "Note",
-            Self::ElfShTypeNoBits => "No bits",
+            Self::ElfShTypeNoBits => "NOBITS",
             Self::ElfShTypeRel => "Relocations",
             Self::ElfShTypeShLib => "Shared library",
             Self::ElfShTypeDynSym => "Dynamic symbols",
@@ -228,15 +228,15 @@ mod test {
     use super::*;
 
     const KNOWN: &[(u32, ElfShType, &str)] = &[
-        (0, ElfShType::ElfShTypeNull, "Null"),
-        (1, ElfShType::ElfShTypeProgBits, "Program data"),
-        (2, ElfShType::ElfShTypeSymTab, "Symbol table"),
-        (3, ElfShType::ElfShTypeStrTab, "String table"),
+        (0, ElfShType::ElfShTypeNull, "NULL"),
+        (1, ElfShType::ElfShTypeProgBits, "PROGBITS"),
+        (2, ElfShType::ElfShTypeSymTab, "SYMTAB"),
+        (3, ElfShType::ElfShTypeStrTab, "STRTAB"),
         (4, ElfShType::ElfShTypeRela, "Relocations with addends"),
         (5, ElfShType::ElfShTypeHash, "Hash table"),
         (6, ElfShType::ElfShTypeDynamic, "Dynamic"),
         (7, ElfShType::ElfShTypeNote, "Note"),
-        (8, ElfShType::ElfShTypeNoBits, "No bits"),
+        (8, ElfShType::ElfShTypeNoBits, "NOBITS"),
         (9, ElfShType::ElfShTypeRel, "Relocations"),
         (10, ElfShType::ElfShTypeShLib, "Shared library"),
         (11, ElfShType::ElfShTypeDynSym, "Dynamic symbols"),

@@ -47,7 +47,7 @@ impl ElfVersion {
     /// Convert this version into a readable string.
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::ElfVersionCurrent => "Current",
+            Self::ElfVersionCurrent => "1 (current)",
             Self::ElfVersionUnknown(_) => "Unknown version",
         }
     }
@@ -60,7 +60,7 @@ mod test {
     #[test]
     fn test_elf_version_conversions_and_strings() {
         for (raw, version, name) in [
-            (1, ElfVersion::ElfVersionCurrent, "Current"),
+            (1, ElfVersion::ElfVersionCurrent, "1 (current)"),
             (2, ElfVersion::ElfVersionUnknown(2), "Unknown version"),
             (
                 u8::MAX,

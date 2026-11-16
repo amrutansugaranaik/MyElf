@@ -55,6 +55,21 @@ impl ElfPhFlags {
             _ => "Multiple flag or invalid flag",
         }
     }
+
+    /// Return the flags (read, write and executable) in string format.
+    pub fn as_str_rwe(&self) -> &str {
+        match self.0 {
+            0 => "   ",
+            1 => "  E",
+            2 => " W ",
+            3 => " WE",
+            4 => "R  ",
+            5 => "R E",
+            6 => "RW ",
+            7 => "RWE",
+            _ => ""
+        }
+    }
 }
 
 impl From<u32> for ElfPhFlags {

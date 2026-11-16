@@ -9,7 +9,7 @@ use crate::types::ei_osabi::ElfOsAbi;
 use crate::types::ei_version::ElfVersion;
 
 /// Common ELF identifier structure, present in both 32-bit and 64-bit ELF files.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ElfIdentifier {
     /// Magic number, always `0x7F 'E' 'L' 'F'`.
     pub magic: [u8; 4],
@@ -27,10 +27,10 @@ pub struct ElfIdentifier {
     pub pad: [u8; 7],
 }
 
-impl From<[u8; 16]> for ElfIdentifier {
+impl From<&[u8; 16]> for ElfIdentifier {
     /// Create an `ElfIdentifier` from an array of 16 bytes, as found in the ELF header.
     /// It is assumed that the data is correct in the slice, and the caller is responsible for validate().
-    fn from(value: [u8; 16]) -> Self {
+    fn from(value: &[u8; 16]) -> Self {
         Self {
             magic: [value[0], value[1], value[2], value[3]],
             class: ElfClass::from(value[4]),
@@ -195,7 +195,7 @@ mod test {
 
     #[test]
     fn test_from_array() {
-        let identifier = ElfIdentifier::from(G_IDENTIFIER_BYTES);
+        let identifier = ElfIdentifier::from(&G_IDENTIFIER_BYTES);
         assert_eq!(identifier.magic, [0x7F, b'E', b'L', b'F']);
         assert_eq!(identifier.class, ElfClass::ElfClass64);
         assert_eq!(identifier.data, ElfEndian::ElfEndianLittle);
@@ -227,36 +227,36 @@ mod test {
         let mut identifier_array = [0x7F, b'E', b'L', b'F', 2, 1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0];
 
         // test1 : Check a valid identifier. This should pass.
-        let identifier = ElfIdentifier::from(identifier_array);
+        let identifier = ElfIdentifier::from(&identifier_array);
         assert_eq!(identifier.validate(), Ok(()));
 
         // test2: Update marker to invalid value.
         identifier_array[0] = 0xFF;
-        let identifier = ElfIdentifier::from(identifier_array);
+        let identifier = ElfIdentifier::from(&identifier_array);
         assert_eq!(identifier.validate(), Err(ElfErrors::InvalidMagicNumber));
         identifier_array[0] = 0x7F; // reset to valid value for the next test.
 
         // test3: Update class to invalid value.
         identifier_array[4] = 0xFF;
-        let identifier = ElfIdentifier::from(identifier_array);
+        let identifier = ElfIdentifier::from(&identifier_array);
         assert_eq!(identifier.validate(), Err(ElfErrors::InvalidElfClass));
         identifier_array[4] = 2; // reset to valid value for the next test.
 
         // test4: Update Endianess to invalid value.
         identifier_array[5] = 0xFF;
-        let identifier = ElfIdentifier::from(identifier_array);
+        let identifier = ElfIdentifier::from(&identifier_array);
         assert_eq!(identifier.validate(), Err(ElfErrors::InvalidElfEndian));
         identifier_array[5] = 1; // reset to valid value for the next test.
 
         // test5: Update version to invalid value.
         identifier_array[6] = 0xFF;
-        let identifier = ElfIdentifier::from(identifier_array);
+        let identifier = ElfIdentifier::from(&identifier_array);
         assert_eq!(identifier.validate(), Err(ElfErrors::InvalidElfVersion));
         identifier_array[6] = 1; // reset to valid value for the next test.
 
         // test6: Update ABI to invalid value.
         identifier_array[7] = 0xFF;
-        let identifier = ElfIdentifier::from(identifier_array);
+        let identifier = ElfIdentifier::from(&identifier_array);
         assert_eq!(identifier.validate(), Err(ElfErrors::InvalidOsAbi));
         identifier_array[7] = 3; // reset to valid value for the next test.
     }

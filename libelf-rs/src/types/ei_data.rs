@@ -53,7 +53,7 @@ impl ElfEndian {
     /// Convert this data encoding into a readable string.
     pub fn as_str(&self) -> &'static str {
         match self {
-            ElfEndian::ElfEndianLittle => "Little-endian",
+            ElfEndian::ElfEndianLittle => "2's complement, little endian",
             ElfEndian::ElfEndianBig => "Big-endian",
             ElfEndian::ElfEndianUnknown(_) => "Unknown data encoding",
         }
@@ -66,7 +66,7 @@ mod test {
 
     #[test]
     fn test_elf_endian_as_string() {
-        assert_eq!(ElfEndian::ElfEndianLittle.as_str(), "Little-endian");
+        assert_eq!(ElfEndian::ElfEndianLittle.as_str(), "2's complement, little endian");
         assert_eq!(ElfEndian::ElfEndianBig.as_str(), "Big-endian");
         assert_eq!(
             ElfEndian::ElfEndianUnknown(3).as_str(),
