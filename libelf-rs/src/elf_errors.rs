@@ -33,5 +33,25 @@ pub enum ElfErrors {
     InvalidMagicNumber,
     /// ELF header size does not match its ELF class.
     InvalidElfHeaderSize,
+    /// Not an ELF64 header
+    InvalidElf64Header,
+    /// Not an ELF32 header
+    InvalidElf32Header,
+    /// Not a valid Program header 32
+    InvalidElf32ProgramHeader,
+    /// Not a valid Program header 64
+    InvalidElf64ProgramHeader,
+    /// Not a valid Section header 32
+    InvalidElf32SectionHeader,
+    /// Not a valid Section header 64
+    InvalidElf64SectionHeader,
+    /// Invalid Symbol table Binding
+    InvalidSymbolBind,
+    /// Invalid Symbol table Type
+    InvalidSymbolType,
+    /// Invalid Symbol table Info
+    InvalidSymbolInfo,
+    /// Invalid symbol table visibility
+    InvalidSymTabVisibility,
     // More to be added.
 }

@@ -9,6 +9,8 @@ pub mod structures {
     pub mod program_header_64;
     pub mod section_header_32;
     pub mod section_header_64;
+    pub mod symbol_table_32;
+    pub mod symbol_table_64;
 }
 pub mod types {
     pub mod e_machine;
@@ -21,4 +23,5 @@ pub mod types {
     pub mod p_type;
     pub mod sh_flags;
     pub mod sh_type;
+    pub mod st_type;
 }

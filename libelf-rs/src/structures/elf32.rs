@@ -13,6 +13,8 @@ pub const ELF32_HEADER_SIZE: u16 = 52;
 pub const ELF32_PROGRAM_HEADER_SIZE: u16 = 32;
 /// Size of an ELF32 section header in bytes.
 pub const ELF32_SECTION_HEADER_SIZE: u16 = 40;
+/// Size of an ELF32 symbol table in bytes.
+pub const ELF32_SYMBOL_TABLE_SIZE: usize = 16;
 
 /// ELF32 file header.
 #[derive(Clone, Debug, PartialEq)]
