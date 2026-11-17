@@ -55,9 +55,9 @@ impl ElfProgramHeader32 {
     }
 }
 
-impl From<&[u8; ELF32_PROGRAM_HEADER_SIZE as usize]> for ElfProgramHeader32 {
+impl From<&[u8; ELF32_PROGRAM_HEADER_SIZE]> for ElfProgramHeader32 {
     /// Read an ELF32 program header from its little-endian byte representation.
-    fn from(bytes: &[u8; ELF32_PROGRAM_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF32_PROGRAM_HEADER_SIZE]) -> Self {
         Self {
             p_type: ElfPhType::from(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])),
             p_offset: u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]),
@@ -73,10 +73,10 @@ impl From<&[u8; ELF32_PROGRAM_HEADER_SIZE as usize]> for ElfProgramHeader32 {
     }
 }
 
-impl From<ElfProgramHeader32> for [u8; ELF32_PROGRAM_HEADER_SIZE as usize] {
+impl From<ElfProgramHeader32> for [u8; ELF32_PROGRAM_HEADER_SIZE] {
     /// Convert an ELF32 program header to its little-endian byte representation.
     fn from(header: ElfProgramHeader32) -> Self {
-        let mut bytes = [0; ELF32_PROGRAM_HEADER_SIZE as usize];
+        let mut bytes = [0; ELF32_PROGRAM_HEADER_SIZE];
         bytes[0..4].copy_from_slice(&u32::from(header.p_type).to_le_bytes());
         bytes[4..8].copy_from_slice(&header.p_offset.to_le_bytes());
         bytes[8..12].copy_from_slice(&header.p_vaddr.to_le_bytes());
@@ -110,7 +110,7 @@ mod test {
         header.p_flags = ElfPhFlags::PF_R | ElfPhFlags::PF_X;
         header.p_align = 0x1000;
 
-        let bytes: [u8; ELF32_PROGRAM_HEADER_SIZE as usize] = header.into();
+        let bytes: [u8; ELF32_PROGRAM_HEADER_SIZE] = header.into();
         assert_eq!(
             &bytes,
             &[
@@ -125,11 +125,11 @@ mod test {
 
     #[test]
     fn test_program_header_32_unknown_type_round_trips() {
-        let mut bytes = [0; ELF32_PROGRAM_HEADER_SIZE as usize];
+        let mut bytes = [0; ELF32_PROGRAM_HEADER_SIZE];
         bytes[0..4].copy_from_slice(&0x1234_u32.to_le_bytes());
         let parsed = ElfProgramHeader32::from(&bytes);
         assert_eq!(parsed.p_type, ElfPhType::ElfPhTypeUnknown(0x1234));
-        let encoded: [u8; ELF32_PROGRAM_HEADER_SIZE as usize] = parsed.into();
+        let encoded: [u8; ELF32_PROGRAM_HEADER_SIZE] = parsed.into();
         assert_eq!(&encoded[0..4], &0x1234_u32.to_le_bytes());
     }
 

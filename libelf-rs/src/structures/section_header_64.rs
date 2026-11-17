@@ -58,9 +58,9 @@ impl ElfSectionHeader64 {
     }
 }
 
-impl From<&[u8; ELF64_SECTION_HEADER_SIZE as usize]> for ElfSectionHeader64 {
+impl From<&[u8; ELF64_SECTION_HEADER_SIZE]> for ElfSectionHeader64 {
     /// Read an ELF64 section header from its little-endian byte representation.
-    fn from(bytes: &[u8; ELF64_SECTION_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF64_SECTION_HEADER_SIZE]) -> Self {
         Self {
             sh_name: u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
             sh_type: ElfShType::from(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]])),
@@ -94,10 +94,10 @@ impl From<&[u8; ELF64_SECTION_HEADER_SIZE as usize]> for ElfSectionHeader64 {
     }
 }
 
-impl From<ElfSectionHeader64> for [u8; ELF64_SECTION_HEADER_SIZE as usize] {
+impl From<ElfSectionHeader64> for [u8; ELF64_SECTION_HEADER_SIZE] {
     /// Convert an ELF64 section header to its little-endian byte representation.
     fn from(header: ElfSectionHeader64) -> Self {
-        let mut bytes = [0; ELF64_SECTION_HEADER_SIZE as usize];
+        let mut bytes = [0; ELF64_SECTION_HEADER_SIZE];
         bytes[0..4].copy_from_slice(&header.sh_name.to_le_bytes());
         bytes[4..8].copy_from_slice(&u32::from(header.sh_type).to_le_bytes());
         bytes[8..16].copy_from_slice(&u64::from(header.sh_flags).to_le_bytes());
@@ -135,7 +135,7 @@ mod test {
         header.sh_addralign = 0x1000;
         header.sh_entsize = 16;
 
-        let bytes: [u8; ELF64_SECTION_HEADER_SIZE as usize] = header.into();
+        let bytes: [u8; ELF64_SECTION_HEADER_SIZE] = header.into();
         assert_eq!(
             &bytes,
             &[
@@ -152,11 +152,11 @@ mod test {
 
     #[test]
     fn test_section_header_64_unknown_type_round_trips() {
-        let mut bytes = [0; ELF64_SECTION_HEADER_SIZE as usize];
+        let mut bytes = [0; ELF64_SECTION_HEADER_SIZE];
         bytes[4..8].copy_from_slice(&0x1234_u32.to_le_bytes());
         let parsed = ElfSectionHeader64::from(&bytes);
         assert_eq!(parsed.sh_type, ElfShType::ElfShTypeUnknown(0x1234));
-        let encoded: [u8; ELF64_SECTION_HEADER_SIZE as usize] = parsed.into();
+        let encoded: [u8; ELF64_SECTION_HEADER_SIZE] = parsed.into();
         assert_eq!(&encoded[4..8], &0x1234_u32.to_le_bytes());
     }
 

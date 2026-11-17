@@ -8,11 +8,11 @@ use crate::types::ei_class::ElfClass;
 use crate::types::ei_data::ElfEndian;
 
 /// Size of the ELF32 header in bytes.
-pub const ELF32_HEADER_SIZE: u16 = 52;
+pub const ELF32_HEADER_SIZE: usize = 52;
 /// Size of an ELF32 program header in bytes.
-pub const ELF32_PROGRAM_HEADER_SIZE: u16 = 32;
+pub const ELF32_PROGRAM_HEADER_SIZE: usize = 32;
 /// Size of an ELF32 section header in bytes.
-pub const ELF32_SECTION_HEADER_SIZE: u16 = 40;
+pub const ELF32_SECTION_HEADER_SIZE: usize = 40;
 /// Size of an ELF32 symbol table in bytes.
 pub const ELF32_SYMBOL_TABLE_SIZE: usize = 16;
 
@@ -61,10 +61,10 @@ impl Elf32 {
             phoff: 0,
             shoff: 0,
             flags: 0,
-            ehsize: ELF32_HEADER_SIZE,
-            phentsize: ELF32_PROGRAM_HEADER_SIZE,
+            ehsize: ELF32_HEADER_SIZE as u16,
+            phentsize: ELF32_PROGRAM_HEADER_SIZE as u16,
             phnum: 0,
-            shentsize: ELF32_SECTION_HEADER_SIZE,
+            shentsize: ELF32_SECTION_HEADER_SIZE as u16,
             shnum: 0,
             shstrndx: 0,
         }
@@ -81,20 +81,20 @@ impl Elf32 {
         if self.version != 1 {
             return Err(ElfErrors::InvalidElfVersion);
         }
-        if self.ehsize != ELF32_HEADER_SIZE {
+        if self.ehsize as usize != ELF32_HEADER_SIZE {
             return Err(ElfErrors::InvalidElfHeaderSize);
         }
         Ok(())
     }
 }
 
-impl From<&[u8; ELF32_HEADER_SIZE as usize]> for Elf32 {
+impl From<&[u8; ELF32_HEADER_SIZE]> for Elf32 {
     /// Read an ELF32 header from its fixed-size byte representation.
     ///
     /// Unsupported data encodings are normalized to `Unknown(0xFF)`. Since
     /// their byte order is not defined, the remaining fields use little-endian
     /// decoding as a deterministic placeholder; validate before using them.
-    fn from(bytes: &[u8; ELF32_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF32_HEADER_SIZE]) -> Self {
         let mut identifier_bytes = [0; 16];
         identifier_bytes.copy_from_slice(&bytes[..16]);
         if !matches!(identifier_bytes[5], 1 | 2) {
@@ -121,13 +121,13 @@ impl From<&[u8; ELF32_HEADER_SIZE as usize]> for Elf32 {
     }
 }
 
-impl From<Elf32> for [u8; ELF32_HEADER_SIZE as usize] {
+impl From<Elf32> for [u8; ELF32_HEADER_SIZE] {
     /// Convert an ELF32 header into its fixed-size byte representation.
     ///
     /// An unsupported data encoding is written as `0xFF`; the remaining fields
     /// use little-endian encoding as a deterministic placeholder.
     fn from(header: Elf32) -> Self {
-        let mut bytes = [0; ELF32_HEADER_SIZE as usize];
+        let mut bytes = [0; ELF32_HEADER_SIZE];
         let data = header.identifier.data;
         bytes[..16].copy_from_slice(&<[u8; 16]>::from(header.identifier));
         if matches!(data, ElfEndian::ElfEndianUnknown(_)) {
@@ -185,7 +185,7 @@ mod test {
         header.shnum = 3;
         header.shstrndx = 1;
 
-        let bytes: [u8; ELF32_HEADER_SIZE as usize] = header.clone().into();
+        let bytes: [u8; ELF32_HEADER_SIZE] = header.clone().into();
         assert_eq!(&bytes[..4], &[0x7f, b'E', b'L', b'F']);
         assert_eq!(&bytes[16..24], &[2, 0, 0xf3, 0, 1, 0, 0, 0]);
         let parsed = Elf32::from(&bytes);
@@ -200,7 +200,7 @@ mod test {
         header.phoff = 52;
         header.shnum = 1;
 
-        let bytes: [u8; ELF32_HEADER_SIZE as usize] = header.clone().into();
+        let bytes: [u8; ELF32_HEADER_SIZE] = header.clone().into();
         assert_eq!(&bytes[16..24], &[2, 0, 0xf3, 0, 1, 0, 0, 0]);
         let parsed = Elf32::from(&bytes);
         assert_eq!(parsed, header);
@@ -210,7 +210,7 @@ mod test {
     #[test]
     fn test_elf32_unknown_endian_uses_placeholder() {
         for raw_data in [0, 0x7f, u8::MAX] {
-            let mut bytes: [u8; ELF32_HEADER_SIZE as usize] =
+            let mut bytes: [u8; ELF32_HEADER_SIZE] =
                 header(ElfEndian::ElfEndianLittle).into();
             bytes[5] = raw_data;
             let parsed = Elf32::from(&bytes);
@@ -220,7 +220,7 @@ mod test {
 
             let mut header = header(ElfEndian::ElfEndianLittle);
             header.identifier.data = ElfEndian::ElfEndianUnknown(raw_data);
-            let bytes: [u8; ELF32_HEADER_SIZE as usize] = header.into();
+            let bytes: [u8; ELF32_HEADER_SIZE] = header.into();
             assert_eq!(bytes[5], u8::MAX);
             assert_eq!(
                 u32::from_le_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]),

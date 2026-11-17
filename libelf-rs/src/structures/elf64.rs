@@ -88,13 +88,13 @@ impl Elf64 {
     }
 }
 
-impl From<&[u8; ELF64_HEADER_SIZE as usize]> for Elf64 {
+impl From<&[u8; ELF64_HEADER_SIZE]> for Elf64 {
     /// Read an ELF64 header from its fixed-size byte representation.
     ///
     /// Unsupported data encodings are normalized to `Unknown(0xFF)`. Since
     /// their byte order is not defined, the remaining fields use little-endian
     /// decoding as a deterministic placeholder; validate before using them.
-    fn from(bytes: &[u8; ELF64_HEADER_SIZE as usize]) -> Self {
+    fn from(bytes: &[u8; ELF64_HEADER_SIZE]) -> Self {
         let mut identifier_bytes = [0; 16];
         identifier_bytes.copy_from_slice(&bytes[..16]);
         if !matches!(identifier_bytes[5], 1 | 2) {
@@ -130,13 +130,13 @@ impl From<&[u8; ELF64_HEADER_SIZE as usize]> for Elf64 {
     }
 }
 
-impl From<Elf64> for [u8; ELF64_HEADER_SIZE as usize] {
+impl From<Elf64> for [u8; ELF64_HEADER_SIZE] {
     /// Convert an ELF64 header into its fixed-size byte representation.
     ///
     /// An unsupported data encoding is written as `0xFF`; the remaining fields
     /// use little-endian encoding as a deterministic placeholder.
     fn from(header: Elf64) -> Self {
-        let mut bytes = [0; ELF64_HEADER_SIZE as usize];
+        let mut bytes = [0; ELF64_HEADER_SIZE];
         let data = header.identifier.data;
         bytes[..16].copy_from_slice(&<[u8; 16]>::from(header.identifier));
         if matches!(data, ElfEndian::ElfEndianUnknown(_)) {
