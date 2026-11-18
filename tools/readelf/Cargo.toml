@@ -4,3 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+libelf-rs = { path = "../../libelf-rs", version = "0.1.0" }
+clap = "4.3.10"
